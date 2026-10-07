@@ -1,0 +1,20 @@
+# CSEN 266 Group Homework 1 -- every command in the handout, for copying and pasting.
+
+# Welcome to Pacman (and the G0 setup check)
+python pacman.py
+python pacman.py --layout testMaze --pacman GoWestAgent
+python pacman.py --layout tinyMaze --pacman GoWestAgent
+python pacman.py -h
+python autograder.py
+
+# Problem 1: Breadth-First Search
+python pacman.py -l tinyMaze -p SearchAgent -a fn=breadthFirstSearch
+python pacman.py -l smallMaze -p SearchAgent -a fn=breadthFirstSearch
+python pacman.py -l mediumMaze -p SearchAgent -a fn=breadthFirstSearch -z .5 --frameTime 0
+python pacman.py -l bigMaze -p SearchAgent -a fn=breadthFirstSearch -z .5 --frameTime 0
+
+# Problem 2: A* Search
+python pacman.py -l tinyMaze -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic
+python pacman.py -l smallMaze -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic
+python pacman.py -l mediumMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic --frameTime 0
+python pacman.py -l bigMaze -z .5 -p SearchAgent -a fn=astar,heuristic=manhattanHeuristic --frameTime 0
