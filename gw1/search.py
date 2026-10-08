@@ -197,8 +197,57 @@ def nullHeuristic(state, problem=None) -> float:
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic) -> List[Directions]:
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # FRONTIER: A* uses a priority queue. Priority is defined by f(n) = g(n) + h(n)
+    # g(n) is the cost to reach the current node from the start node
+    # h(n) is the heuristic function estimating the cost from the current node to the g
+    # f(n) is the total estimated cost
+    frontier = util.PriorityQueue()
+
+    # Push the start node into the frontier with priority 0
+    # in our implementation, the priority is the total estimated cost f(n)=g(n)+h(n)
+    frontier.push(Node(problem.getStartState(), None, None, 0), 0)
+
+    visited = set()
+    while not frontier.isEmpty():
+        current = frontier.pop()
+        cost = current.path_cost
+
+        # VISITED SET: A* tracks the visited nodes in a set to avoid revisiting a node
+        # If the current state has been visited, continue
+        # states are added to the visited set when they are expanded
+        if current.state in visited:
+            continue
+        visited.add(current.state)
+
+        # GOAL TEST: Check if the current state is the goal state
+        # When goal is reached, the optimum path has been found
+        if problem.isGoalState(current.state):
+            # PATH: Once we have found the goal node, we need to
+            # follow the parent points back to the start
+            path = []
+            while current.parent is not None:
+                path.append(current.action)
+                current = current.parent
+            # Reverse the path to get it from start to goal
+            return path[::-1]
+
+        # SUCCESSORS: Expand the successors of the current state. The successors
+        # are added to the frontier as a new Node. The state comes from the
+        # successor being processed. The parent node comes from the node we
+        # just popped from the frontier. The action comes from the successor
+        # tuple returned by getSuccessors
+        for successor, action, step_cost in problem.getSuccessors(current.state):
+            if successor not in visited:
+                # G: The cost to reach the successor node from the start node
+                g = cost + step_cost
+                # H: The heuristic estimate from the successor node to the goal
+                h = heuristic(successor, problem)
+                # F: The total estimated cost of the successor node
+                # f will be the priority used in the priority queue
+                f = g + h
+                frontier.push(Node(successor, current, action, g), f)
+    # If the frontier is empty and no goal has been found, return an empty path
+    return []
 
 # Abbreviations
 bfs = breadthFirstSearch
