@@ -136,9 +136,52 @@ def depthFirstSearch(problem: SearchProblem) -> List[Directions]:
 
 def breadthFirstSearch(problem: SearchProblem) -> List[Directions]:
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
+    # Debugging print statements left in place
+
+    # VISITED SET: A set that stores the tuples representing the coordinates of visited nodes
     visited = set()
-    util.raiseNotDefined()
+
+    # FRONTIER: A BFS uses a FIFO queue to explore nodes and then expands from their neighbors
+    frontier = util.Queue()
+    # States are saved as coordinate tuples e.g. (5, 5)
+    start = Node(problem.getStartState(), None, None, 0)
+    # Prime the frontier and visited set with the start node
+    frontier.push(start)
+    visited.add(start.state)
+    # print("Starting BFS with start state:", problem.getStartState())
+
+    while not frontier.isEmpty():
+        current = frontier.pop()
+        if problem.isGoalState(current.state):
+            # PATH: Once BFS finds the goal, we need to backtrack by following the parent pointers
+            # from the goal node back to the start node.
+            path = []
+            cost = 0
+            while current.parent is not None:
+                path.append(current.action)
+                cost += current.path_cost
+                current = current.parent
+            # We need to reverse the lsit because we constructed it from the goal to the start
+            # Path should be from the start to the goal.
+            # Note: The GW1 document suggests to use path.insert(0, action). Choosing to reverse
+            # because constantly inserting to the front of a list in python is inefficient.
+            # Inserting to the front of a Python list is O(n) operation but we do it N times
+            # which leads to a runtime complexity of O(n^2) for constructing the path.
+            # Reversing the list is an O(n) operation.
+            # Alternatively, use a deque and use appendLeft to construct the path
+            return path[::-1]
+
+        # SUCCESSORS: The successor of the current node gets added to the frontier
+        # The successors are added to the visited set when they are pushed into the frontier
+        # THe successors are returned by passing the current state to problem.getSuccessors()
+        for successor, action, step_cost in problem.getSuccessors(current.state):
+            if successor not in visited:
+                visited.add(successor)
+                frontier.push(Node(successor, current, action, step_cost))
+
+    # If the frontier is empty and no goal has been found, return an empty path
+    return []
+    
 
 def uniformCostSearch(problem: SearchProblem) -> List[Directions]:
     """Search the node of least total cost first."""
@@ -154,8 +197,57 @@ def nullHeuristic(state, problem=None) -> float:
 
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic) -> List[Directions]:
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # FRONTIER: A* uses a priority queue. Priority is defined by f(n) = g(n) + h(n)
+    # g(n) is the cost to reach the current node from the start node
+    # h(n) is the heuristic function estimating the cost from the current node to the g
+    # f(n) is the total estimated cost
+    frontier = util.PriorityQueue()
+
+    # Push the start node into the frontier with priority 0
+    # in our implementation, the priority is the total estimated cost f(n)=g(n)+h(n)
+    frontier.push(Node(problem.getStartState(), None, None, 0), 0)
+
+    visited = set()
+    while not frontier.isEmpty():
+        current = frontier.pop()
+        cost = current.path_cost
+
+        # VISITED SET: A* tracks the visited nodes in a set to avoid revisiting a node
+        # If the current state has been visited, continue
+        # states are added to the visited set when they are expanded
+        if current.state in visited:
+            continue
+        visited.add(current.state)
+
+        # GOAL TEST: Check if the current state is the goal state
+        # When goal is reached, the optimum path has been found
+        if problem.isGoalState(current.state):
+            # PATH: Once we have found the goal node, we need to
+            # follow the parent points back to the start
+            path = []
+            while current.parent is not None:
+                path.append(current.action)
+                current = current.parent
+            # Reverse the path to get it from start to goal
+            return path[::-1]
+
+        # SUCCESSORS: Expand the successors of the current state. The successors
+        # are added to the frontier as a new Node. The state comes from the
+        # successor being processed. The parent node comes from the node we
+        # just popped from the frontier. The action comes from the successor
+        # tuple returned by getSuccessors
+        for successor, action, step_cost in problem.getSuccessors(current.state):
+            if successor not in visited:
+                # G: The cost to reach the successor node from the start node
+                g = cost + step_cost
+                # H: The heuristic estimate from the successor node to the goal
+                h = heuristic(successor, problem)
+                # F: The total estimated cost of the successor node
+                # f will be the priority used in the priority queue
+                f = g + h
+                frontier.push(Node(successor, current, action, g), f)
+    # If the frontier is empty and no goal has been found, return an empty path
+    return []
 
 # Abbreviations
 bfs = breadthFirstSearch
